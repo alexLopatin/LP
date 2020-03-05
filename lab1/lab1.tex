@@ -1,0 +1,184 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1, T2A]{fontenc}
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage{listings} 
+\usepackage[english,russian]{babel}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{indentfirst}
+
+\parindent=1cm
+\makeatletter
+\newcommand{\rindex}[2][\imki@jobname]{%
+    \index[#1]{\detokenize{#2}}%
+}
+\makeatother
+\newcolumntype{P}[1]{>{\raggedbottom\arraybackslash}p{#1}}
+
+\hfuzz=10000pt
+\vbadness10000
+\linespread{1}
+\lstset{
+basicstyle=\ttfamily,
+frame=single
+}
+
+\begin{document}
+
+\section*{Лабораторная работа №\,1 по курсу Логическое программирование}
+
+Выполнил студент группы М8О-307Б \textit{Лопатин Александр}.
+
+\subsection*{Введение}
+Связный список — структура данных, состоящая из узлов. Узел содержит данные и ссылку (указатель, связку) на один или два соседних узла. Списки языка Prolog являются односвязными, т.е. каждый узел содержит лишь одну ссылку.\\
+
+В языке Prolog программист не сталкивается с явной работой с указателями в узлах, однако ему нужно иметь общее представление о списках, т.к. являясь основной структурой данных в функциональных и логических языках, они обладают рядом существенных отличий от массивов, используемых в императивных языках (таких как С++, Java, Pascal). В частности, элемент данных может быть очень быстро добавлен или удален из начала односвязного списка. Однако операция произвольного доступа (обращения к n-ному элементу) в списках выполняется гораздо дольше чем в массивах, т.к. требует n операций перехода по ссылкам.\\
+
+При работе с односвязными списками необходимо выделять первый узел (называемый головой списка), остальные узлы (составляющие хвост списка) можно получить передвигаясь по указателям вплоть до последнего узла. Хвост списка является таким же списком, как и исходный, поэтому обрабатывается аналогичным образом (рекурсивно).\\
+
+
+\subsection*{Реализация стандартных предикатов}
+Предикат вычисления длины списка:
+\begin{lstlisting}
+list_length([], 0).
+list_length([_|L], N):-list_length(L, M), N is M + 1.
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- list_length([1,2,3,4,5,6], X).
+X = 6
+\end{lstlisting}
+
+Предикат вычисления  конкатeнации списков:
+\begin{lstlisting}
+append([], L, L).
+append([X|L1], L2, [X|L3]):-append(L1, L2, L3).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- append([-2, -1], [1,2,3,4,5,6], X).
+X = [-2, -1, 1, 2, 3, 4, 5, 6]
+\end{lstlisting}
+
+Предикат принадлежности элемента списку:
+\begin{lstlisting}
+member(X, [X|_]).
+member(X, [_|T]):-member(X, T).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- member(3, [1,2,3,4,5,6]).
+true
+?- member(-1, [1,2,3,4,5,6]).
+false
+\end{lstlisting}
+
+Предикат удаления элемента из списка:
+\begin{lstlisting}
+remove(X, [X|T], T).
+remove(X, [Y|T], [Y|Z]):-remove(X, T, Z).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- remove(3, [1,2,3,4,5,6], X).
+X = [1, 2, 4, 5, 6]
+\end{lstlisting}
+
+Предикат перестановки элементов в списке:
+\begin{lstlisting}
+permute([], []).
+permute(L, [X|T]):-remove(X, L, Y), permute(Y, T).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- permute([1,2,3], X).
+X = [1, 2, 3]
+X = [1, 3, 2]
+X = [2, 1, 3]
+X = [2, 3, 1]
+X = [3, 1, 2]
+X = [3, 2, 1]
+\end{lstlisting}
+
+Предикат подсписков списка:
+\begin{lstlisting}
+sublist(S, L):-append(_, L1, L), append(S, _, L1).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- sublist(X, [1,2,3]).
+X = []
+X = [1]
+X = [1, 2]
+X = [1, 2, 3]
+X = []
+X = [2]
+X = [2, 3]
+X = []
+X = [3]
+X = []
+\end{lstlisting}
+
+\subsection*{Предикаты обработки списков}
+Вариант 3: реверсирование списка.\\
+Без использования стандартных предикатов:
+\begin{lstlisting}
+reverse([],Z,Z).
+ reverse([H|T],Z,Acc) :- reverse(T,Z,[H|Acc]).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- reverse([1,2,3], X, []).
+X = [3, 2, 1]
+\end{lstlisting}
+С использованием стандартных предикатов:
+\begin{lstlisting}
+reverse_std([],Z,Z).
+ reverse_std([H|T],Z,Acc) :- 
+ append([H], Acc, L1), reverse_std(T, Z, L1).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- reverse_std([1,2,3], X, []).
+X = [3, 2, 1]
+\end{lstlisting}
+
+\subsection*{Предикат обработки числовых списков}
+Вариант 3: нахождение максимального элемента в списке.\\
+Без использования стандартных предикатов:
+\begin{lstlisting}
+max([X], X).
+max([X|Y], X):-
+    max(Y, M), X >= M.
+max([X|Y], Z):-
+    max(Y, Z), X < Z.
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- max([1,3,2], X).
+X = 3
+false
+\end{lstlisting}
+
+\subsection*{Пример совместного использования предикатов, реализованных в предыдущих пунктах}
+Для примера я выбрал сортировку числового списка - просто на каждом шаге выбираем максимальный элемент, добавляем в новый список, из старого удаляем.\\
+\begin{lstlisting}
+sort([], L, L).
+sort(L1, C, L2):-
+    max(L1, M), remove(M, L1, L3), sort(L3, C, [M|L2]).
+\end{lstlisting}
+Результат работы:
+\begin{lstlisting}
+?- sort([5,2,1,-5,2,7], X, []).
+X = [-5, 1, 2, 2, 5, 7]
+\end{lstlisting}
+
+\subsection*{Вывод}
+В ходе данной лабораторной работы я разобрался, как устроен и как работает язык программирования Prolog, реализовал несложные предикаты для работы со
+списками. 
+\end{document}
