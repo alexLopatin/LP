@@ -1,0 +1,97 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage[T1, T2A]{fontenc}
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage{listings} 
+\usepackage[english,russian]{babel}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{indentfirst}
+
+\parindent=1cm
+\makeatletter
+\newcommand{\rindex}[2][\imki@jobname]{%
+    \index[#1]{\detokenize{#2}}%
+}
+\makeatother
+\newcolumntype{P}[1]{>{\raggedbottom\arraybackslash}p{#1}}
+
+\hfuzz=10000pt
+\vbadness10000
+\linespread{1}
+\lstset{
+basicstyle=\ttfamily,
+frame=single
+}
+
+\begin{document}
+
+\section*{Лабораторная работа №\,2 по курсу Логическое программирование}
+
+Выполнил студент группы М8О-307Б \textit{Лопатин Александр}.
+
+\subsection*{Задание}
+Написать и отладить Пролог-программу решения логической задачи в соответствии с номером варинта.\\
+Вариант №3:\\
+Как то раз случай свел в купе астронома, поэта , прозаика и драматурга. Это были Алексеев, Борисов, Константинов и Дмитриев. Оказалось, что каждый из них взял с собой книгу написанную одним из пассажиров этого купе. Алексеев и Борисов углубились в чтениепредварительно обменявшись книгами. Поэт читал пьесу, прозаик - очень молоой человек, выпустившись свою книгу, говорил что он никогда и ни чего не читал по астрономии. Борисов купил одно из произведений Дмитриева. Никто из пассажиров не читал свои книги. Что читал каждый из них, кто кем был?
+
+\subsection*{Введение}
+
+Существует 2 основных подхода к решению логических задач: метод порождения и проверок и метод ветвей и границ. Они оба перебирают некоторый набор решений. Суть первого метода состоит в том, что некоторый предикат генерирует множество исходных данных, которые затем проверяются другими предикатами на предмет соответствия условию задачи. В случае неуспеха происходит возврат и рассмотрение следующего решения, в случае успеха полученное решение возвращается пользователю или используется дальше. Второй метод можно противопоставить первому. В методе ветвей и границ значительные части возможных решений отсекаются на раннем этапе выполнения или вообще не генерируются. Например, можно использовать предикат member одновременно для генерации и для проверки, таким образом генерируются не все варианты решений, а какое-то их подмножество. Очевидно, что программа, написанная с помощью второго метода, будет работать быстрее.
+
+\subsection*{Принцип решения}
+В ходе решения используется предикат unique - предикат, показывающий, что в списке нет повторяющихся элементов. Также был вынесен отдельно предикат check, который проверяет,
+нет ли в списке пассажиров те, кто читает или купил то, что сам написал:
+\begin{lstlisting}
+check([]):-!.
+check([passenger(_, XRead, XBuy, XWrite)|T]):-
+  !, not(XRead = XWrite), not(XBuy = XWrite), check(T).
+\end{lstlisting}
+Задаем начальные условия задачи: каждый написал книгу, купил книгу и читает книгу:
+\begin{lstlisting}
+Solve = [passenger(alekseev, XRead, XBuy, XWrite),
+          passenger(borisov, YRead, YBuy, YWrite),
+          passenger(konstantinov, ZRead, ZBuy, ZWrite), 
+          passenger(dmitriev, WRead, WBuy, WWrite)],
+  writebook(XWrite), writebook(YWrite),
+  writebook(ZWrite), writebook(WWrite),
+  unique([XWrite, YWrite, ZWrite, WWrite]),
+  
+  writebook(XBuy), writebook(YBuy),
+  writebook(ZBuy), writebook(WBuy),
+  unique([XBuy, YBuy, ZBuy, WBuy]),
+  
+  writebook(XRead), writebook(YRead),
+  writebook(ZRead), writebook(WRead),
+  unique([XRead, YRead, ZRead, WRead]),
+\end{lstlisting}
+
+Далее, используя стандартный предикат
+member задаем оставшиеся условия задачи: поэт читает пьесу:
+\begin{lstlisting}
+member(passenger(_, piece, _, poetry), Solve),
+\end{lstlisting}
+Прозаик не читает и не покупад астрономию:
+\begin{lstlisting}
+not(member(passenger(_, astronomy, _, prose), Solve)),
+not(member(passenger(_, _, astronomy, prose), Solve)),
+\end{lstlisting}
+Алексеев и Борисов обменялись книгами:
+\begin{lstlisting}
+  member(passenger(alekseev, AlekseevRead, AlekseevBuy, _), Solve),
+  member(passenger(borisov, AlekseevBuy, AlekseevRead, _), Solve),
+\end{lstlisting}
+Борисов купил произведение Дмитриева:
+\begin{lstlisting}
+  member(passenger(dmitriev, _, _, DmitrievWrite), Solve),
+  member(passenger(borisov, _, DmitrievWrite, _), Solve).
+\end{lstlisting}
+
+\subsection*{Вывод}
+В ходе данной лабораторной работы я разобрался, как устроен и как работает язык программирования Prolog, реализовал несложные предикаты для работы со
+списками. 
+\end{document}
